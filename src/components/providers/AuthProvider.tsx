@@ -2,8 +2,17 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { authService } from '@/services';
+import { getAuthService, authServiceRegistry } from '@/services';
 import { apiClient } from '@/services/apiClient';
+
+// Check if mock environment is enabled
+const isMockEnv = process.env.NEXT_PUBLIC_MOCK_ENV === 'true';
+
+// Initialize mock service if MOCK_ENV is true
+if (isMockEnv) {
+  console.log('[Auth] Mock environment enabled - using MockAuthService');
+  authServiceRegistry.useMock();
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -13,7 +22,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -63,7 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuth = async () => {
     try {
-      const authenticated = authService.isAuthenticated();
+      const authenticated = getAuthService().isAuthenticated();
       setIsAuthenticated(authenticated);
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -75,7 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await authService.login({ username, password });
+      const response = await getAuthService().login({ username, password });
       if (response.status) {
         setIsAuthenticated(true);
         setTimeout(() => {
@@ -94,7 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
-      await authService.logout();
+      await getAuthService().logout();
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {

@@ -1,4 +1,5 @@
 import { apiClient } from './apiClient';
+import type { IAuthService } from './authService.interface';
 import type { 
   ApiResponse, 
   LoginRequest, 
@@ -6,7 +7,7 @@ import type {
   RefreshRequest 
 } from '../types/api';
 
-export class AuthService {
+export class AuthService implements IAuthService {
   /**
    * User login
    * POST /auth/login
