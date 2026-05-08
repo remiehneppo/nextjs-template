@@ -24,6 +24,16 @@ export class MockAuthService implements IAuthService {
   private _isAuthenticated = false;
   private _accessToken: string | null = null;
   private _refreshToken: string | null = null;
+  private readonly accessTokenKey = 'mock_access_token';
+  private readonly refreshTokenKey = 'mock_refresh_token';
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this._accessToken = localStorage.getItem(this.accessTokenKey);
+      this._refreshToken = localStorage.getItem(this.refreshTokenKey);
+      this._isAuthenticated = !!this._accessToken;
+    }
+  }
   
   // Configurable mock users
   private mockUsers: MockUser[] = [
@@ -77,6 +87,7 @@ export class MockAuthService implements IAuthService {
     this._isAuthenticated = false;
     this._accessToken = null;
     this._refreshToken = null;
+    this.clearStoredTokens();
     this.shouldFailLogin = false;
     this.shouldFailLogout = false;
     this.shouldFailRefresh = false;
@@ -125,6 +136,7 @@ export class MockAuthService implements IAuthService {
     this._isAuthenticated = true;
     this._accessToken = user.accessToken;
     this._refreshToken = user.refreshToken;
+    this.storeTokens(user.accessToken, user.refreshToken);
 
     return {
       status: true,
@@ -149,6 +161,7 @@ export class MockAuthService implements IAuthService {
     this._isAuthenticated = false;
     this._accessToken = null;
     this._refreshToken = null;
+    this.clearStoredTokens();
 
     return {
       status: true,
@@ -181,6 +194,7 @@ export class MockAuthService implements IAuthService {
 
     this._accessToken = newAccessToken;
     this._refreshToken = newRefreshToken;
+    this.storeTokens(newAccessToken, newRefreshToken);
 
     return {
       status: true,
@@ -198,6 +212,20 @@ export class MockAuthService implements IAuthService {
 
   getAccessToken(): string | null {
     return this._accessToken;
+  }
+
+  private storeTokens(accessToken: string, refreshToken: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(this.accessTokenKey, accessToken);
+      localStorage.setItem(this.refreshTokenKey, refreshToken);
+    }
+  }
+
+  private clearStoredTokens(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(this.accessTokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+    }
   }
 
   /**
